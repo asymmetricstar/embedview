@@ -127,19 +127,6 @@ static strings, repeated visual values are kept in CSS variables declared under
 `:root`; for example `--badge-bg`, `--badge-fg` and `--text` cover the colors
 and text color used by the classes.
 
-Filtrelerin bu sablonda işlediğini:
-
-```text
-- `random(1, 100)` → 100’ün altına çarpılabilir rastgele tam sayı
-- `randomBytes(16)` → 16 baytlık rastgele hex
-- `uuid()` → 32 haneli rastgele başına-yield kimlik
-- `md5("selam")` → dizeye MD5 hash
-```
-
-`<script>` içindeki `document.querySelector("li:first-child").className`,
-tarayıcıda çalışırken kopyalanan sınıf isimlerini alır; bu sayede sabit
-içeriklerin kopyalanması gerekmez ve liste öğelerinde anlık üretilen sınıf
-isimleri kullanılabilir.
 
 ## Notes
 
