@@ -1,6 +1,6 @@
 {
   "name": "embedview",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sequential Embedded Script template engine - async, safe, Express-ready view renderer for Node.js",
   "keywords": [
     "template",
