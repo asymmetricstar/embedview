@@ -1,0 +1,39 @@
+{
+  "name": "embedview",
+  "version": "0.1.1",
+  "description": "Sequential Embedded Script template engine - async, safe, Express-ready view renderer for Node.js",
+  "keywords": [
+    "template",
+    "engine",
+    "sequential",
+    "embedded",
+    "script",
+    "async",
+    "safe",
+    "view",
+    "express"
+  ],
+  "author": "Levent Inan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/asymmetricstar/embedview.git"
+  },
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "files": [
+    "src",
+    "readme.md",
+    "logo.png"
+  ],
+  "scripts": {
+    "start": "node src/index.js"
+  },
+    "bin": {
+      "embedview": "src/index.js"
+    },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "typescript": "^5.3.3"
+  }
+}

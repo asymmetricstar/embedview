@@ -1,0 +1,67 @@
+<?js
+// Program logic lives in the template: the server only supplies the request.
+const name = String(postvar("name") || "").trim();
+const message = String(postvar("message") || "").trim();
+
+if (name && message) {
+    const stored = getglobal("guestbook") || [];
+    setglobal("guestbook", [
+        { name, message, at: new Date().toLocaleString("tr-TR") },
+        ...stored
+    ]);
+}
+
+const search = String(getvar("q") || "").toLowerCase();
+const all = getglobal("guestbook") || [];
+const entries = search
+    ? all.filter(entry =>
+        entry.name.toLowerCase().includes(search) ||
+        entry.message.toLowerCase().includes(search))
+    : all;
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Guestbook</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+        li { margin-bottom: 1rem; }
+        li em { color: #777; font-size: .85rem; margin-left: .5rem; }
+        input, textarea, button { display: block; margin: .4rem 0; padding: .4rem; width: 100%; box-sizing: border-box; }
+        form { margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Guestbook <small>(${entries.length} of ${all.length})</small></h1>
+
+    <form method="get" action="/">
+        <input name="q" placeholder="Search entries" value='$getvar("q")'>
+        <button>Search</button>
+    </form>
+
+    <form method="post" action="/">
+        <input name="name" placeholder="Your name" value='$getvar("name")'>
+        <textarea name="message" placeholder="Your message" rows="3"></textarea>
+        <button>Sign the guestbook</button>
+    </form>
+
+    {@if entries.length === 0}
+        {@if all.length === 0}
+            <p>No entries yet.</p>
+        {@else}
+            <p>No entries match this search.</p>
+        {@/if}
+    {@else}
+        <ul>
+        {@for entry in entries}
+            <li>
+                <strong>${escape(entry.name)}</strong>
+                <em>${escape(entry.at)}</em>
+                <p>${escape(entry.message)}</p>
+            </li>
+        {@/for}
+        </ul>
+    {@/if}
+</body>
+</html>

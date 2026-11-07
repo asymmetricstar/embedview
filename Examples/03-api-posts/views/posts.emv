@@ -1,0 +1,53 @@
+<?js
+// JSONPlaceholder: no API key, no setup, real HTTP data.
+let users = getglobal("users");
+if (!users) {
+    users = await get("https://jsonplaceholder.typicode.com/users");
+    setglobal("users", users);
+}
+
+const posts = await get("https://jsonplaceholder.typicode.com/posts?_limit=12");
+const authorOf = id => (users.find(user => user.id === id) || {}).name || "Unknown";
+
+const selectedUser = String(getvar("userId") || "");
+const visible = selectedUser
+    ? posts.filter(post => String(post.userId) === selectedUser)
+    : posts;
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Posts</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; }
+        article { border-bottom: 1px solid #ddd; padding: 1rem 0; }
+        h2 { margin: 0 0 .25rem; font-size: 1.1rem; }
+        .meta { color: #666; font-size: .85rem; margin: 0 0 .5rem; }
+        .stats { background: #f4f4f4; padding: .75rem 1rem; }
+    </style>
+</head>
+<body>
+    <h1>JSONPlaceholder posts</h1>
+
+    <p class="stats">
+        Showing {{ visible | length }} of {{ posts | length }} posts ·
+        {{ users | length }} users ·
+        {{ posts | where("userId", 1) | length }} posts for user #1
+    </p>
+
+    {@if visible.length === 0}
+        <p>No posts for this user.</p>
+    {@else}
+        {@for post in visible}
+            <article>
+                <h2>{{ post.title | capitalize }}</h2>
+                <p class="meta">
+                    {{ authorOf(post.userId) | uppercase }} · post #{{ post.id }}
+                </p>
+                <p>{{ post.body | truncate(140) | nl2br }}</p>
+            </article>
+        {@/for}
+    {@/if}
+</body>
+</html>

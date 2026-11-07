@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+</head>
+<body>
+    <h1>${title}</h1>
+    <p>ViewEngine resolved <code>index</code> to this file without an extension.</p>
+    <ul>
+    {@for name in names}
+        <li>${name}</li>
+    {@/for}
+    </ul>
+
+    <form method="post">
+        <input name="email" placeholder="Email" value='$getvar("email")'>
+        <button>Send</button>
+    </form>
+
+    <p>POST email: [$postvar("email")]</p>
+</body>
+</html>

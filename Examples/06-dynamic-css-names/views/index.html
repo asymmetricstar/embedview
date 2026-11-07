@@ -1,0 +1,34 @@
+<?js
+    const randCss = (prefix) => `${prefix}_${secret}_secure`;
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+    <style>
+        .${randCss("bgcolor")} { background: black; color: white; }
+        .${randCss("Sequential")} { color: #f9a825; }
+        .${randCss("Async")} { color: #60a5fa; }
+        .${randCss("Embedded")} { color: #34d399; }
+        .${randCss("bgcolor")} .item { padding: 4px 8px; margin: 2px 0; }
+        .${randCss("bgcolor")} .tag { color: #a78bfa; }
+        :root {
+            --text: currentColor;
+            --badge-bg: #111827;
+            --badge-fg: #fde68a;
+        }
+    </style>
+</head>
+<body class="${randCss("bgcolor")}">
+    <h1>Dynamic CSS Names</h1>
+    <p>Class names are formed at render time from data, and reused through CSS variables instead of copying static strings.</p>
+    <ul class="${randCss("bgcolor")}">
+        <li class="${randCss("Sequential")} ">Sequential</li>
+        <li class="${randCss("Async")} ">Async</li>
+        <li class="${randCss("Embedded")} ">Embedded</li>
+    </ul>
+    <p>Prefixes: <span class="tag">${randCss("bgcolor")}</span></p>
+    <script>console.log("bgcolor:", document.querySelector("li:first-child").className);</script>
+</body>
+</html>
