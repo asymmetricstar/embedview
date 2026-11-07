@@ -39,21 +39,14 @@ const path = __importStar(require("path"));
 const path_utils_1 = require("../utils/path-utils");
 const file_utils_1 = require("../utils/file-utils");
 const request_1 = require("./request");
-/**
- * vm.runInContext için çalışma-zamanı bağlamı (sandbox) üretir.
- * Şablon kodu bu nesne üzerinden dosya, filtre, include ve ağ erişimine ulaşır.
- */
 function createTemplateContext(deps, filePath, locals, blocks = {}, importStack = []) {
     const { options, outputBuffer, isPathAllowed } = deps;
     const paths = (0, path_utils_1.createPathUtils)(filePath, isPathAllowed);
-    // Aktif istek kapsamı varsa (ViewEngine / handler) locals'a ekle:
-    // böylece $getvar / $postvar ek parametre olmadan çalışır.
     const ambient = (0, request_1.currentRequest)();
     const scopedLocals = (locals?.request ?? locals?.req)
         ? locals
         : (ambient ? { ...locals, request: ambient } : locals);
     const requestVars = (0, file_utils_1.collectRequestVars)(scopedLocals);
-    /** "user.name" gibi noktalı anahtarlarda iç içe değere iner. */
     const pick = (source, key) => {
         if (key === undefined || key === null || key === '')
             return source;
@@ -61,7 +54,6 @@ function createTemplateContext(deps, filePath, locals, blocks = {}, importStack 
             .split('.')
             .reduce((value, part) => (value === undefined || value === null ? undefined : value[part]), source);
     };
-    /** İstek değerini türüyle döndürür; eksik değer boş string olur. */
     const requestValue = (source, key) => {
         const value = pick(source, key);
         return value === undefined || value === null ? '' : value;
@@ -75,7 +67,7 @@ function createTemplateContext(deps, filePath, locals, blocks = {}, importStack 
             error: (...args) => { if (options.debug)
                 console.error('[ERROR]', ...args); }
         },
-        write: (text) => { outputBuffer.push(String(text)); }, // Fallback for old style
+        write: (text) => { outputBuffer.push(String(text)); },
         require: (mod) => {
             if (options.allowedModules.length > 0 && !options.allowedModules.includes(mod)) {
                 throw new Error(`Module "${mod}" is not allowed`);
@@ -116,16 +108,12 @@ function createTemplateContext(deps, filePath, locals, blocks = {}, importStack 
             deps.onError(err);
             return options.errorHandler(err, type);
         },
-        /** Ham GET değeri: getvar("ad") veya noktalı getvar("user.name"). */
         getvar: (key) => requestValue(requestVars.get, key),
-        /** Ham POST değeri: postvar("ad"). */
         postvar: (key) => requestValue(requestVars.post, key),
-        /** Global değer yaz; değeri geri döndürür. */
         setglobal: (name, value) => {
             deps.globals.set(name, value);
             return value;
         },
-        /** Global değeri türüyle oku (object, array, number ...). */
         getglobal: (name) => deps.globals.get(name),
         hasglobal: (name) => deps.globals.has(name),
         deleteglobal: (name) => deps.globals.delete(name),

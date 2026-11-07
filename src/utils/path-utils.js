@@ -36,12 +36,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createPathUtils = createPathUtils;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-/**
- * Şablon bağlamına enjekte edilen dosya sistemi yardımcılarını üretir.
- *
- * @param filePath Şablon dosyası; 'inline' ise cwd temel alınır.
- * @param isPathAllowed rootPath güvenlik kontrolü (motor tarafından enjekte edilir).
- */
 function createPathUtils(filePath, isPathAllowed) {
     const dir = filePath === 'inline' ? process.cwd() : path.dirname(filePath);
     const file = filePath === 'inline' ? '' : filePath;

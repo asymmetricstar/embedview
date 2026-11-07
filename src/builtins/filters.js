@@ -13,19 +13,16 @@ function toDate(value) {
     const date = value instanceof Date ? value : new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
 }
-/** Noktalı alan adıyla (author.name) iç içe değer okur. */
 function pick(value, field) {
     return String(field)
         .split('.')
         .reduce((current, part) => (current === undefined || current === null ? undefined : current[part]), value);
 }
 const defaultFilters = {
-    /* Yardımcı (random / crypto) */
     random: (min = 0, max = 1) => random(min, max),
     randomBytes: (length = 16) => randomBytesHex(Number(length) || 16),
     uuid: () => generateId(32),
     md5: (data) => md5(String(data)),
-    /* Metin */
     uppercase: (v) => String(v).toUpperCase(),
     lowercase: (v) => String(v).toLowerCase(),
     capitalize: (v) => String(v).charAt(0).toUpperCase() + String(v).slice(1),
@@ -45,7 +42,6 @@ const defaultFilters = {
     stripTags: (v) => String(v).replace(/<[^>]*>/g, ''),
     nl2br: (v) => escapeHtml(v).replace(/\r\n|\r|\n/g, '<br>'),
     escape: (v) => escapeHtml(v),
-    /* Sayı ve tarih */
     number: (v, decimals = 0, locale = 'tr-TR') => new Intl.NumberFormat(locale, {
         minimumFractionDigits: Number(decimals) || 0,
         maximumFractionDigits: Number(decimals) || 0
@@ -68,7 +64,6 @@ const defaultFilters = {
         const date = toDate(v);
         return date ? date.toISOString() : '';
     },
-    /* Değer ve dizi */
     default: (v, def = '') => v !== undefined && v !== null && v !== '' ? v : def,
     json: (v) => JSON.stringify(v),
     length: (v) => Array.isArray(v) || typeof v === 'string' ? v.length : 0,
@@ -99,14 +94,12 @@ const defaultFilters = {
             return (left > right ? 1 : -1) * sign;
         });
     },
-    /* Sayısal */
     abs: (v) => Math.abs(Number(v)),
     round: (v) => Math.round(Number(v)),
     floor: (v) => Math.floor(Number(v)),
     ceil: (v) => Math.ceil(Number(v))
 };
 exports.defaultFilters = defaultFilters;
-/** Sablonlarda kullanmak için eklenen yardımcı fonksiyonlar. */
 function random(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);

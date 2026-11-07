@@ -40,13 +40,6 @@ const embed_view_1 = require("../core/embed-view");
 const constants_1 = require("../utils/constants");
 const request_1 = require("../core/request");
 const file_utils_1 = require("../utils/file-utils");
-/**
- * Framework bağımsız view engine adaptörü.
- *
- * `engine` + `set` + `get` sunan herhangi bir kapsayıcıya (Express, Koa
- * sarmalayıcıları, kendi yazdığınız yapı) monte edilebilir. Bu arayüzü
- * sunmayan nesnelerde monte etmez; `render` / `renderView` doğrudan kullanılır.
- */
 class ViewEngine {
     constructor(app = null, options = {}) {
         this.dirWatchers = [];
@@ -86,15 +79,10 @@ class ViewEngine {
         }
         this.mount(options.override ?? false);
     }
-    /** Kapsayıcı otomatik montaj için gereken arayüzü sunuyor mu? */
     canMount() {
         const app = this.app;
         return !!app && typeof app.engine === 'function' && typeof app.set === 'function' && typeof app.get === 'function';
     }
-    /**
-     * Motoru kapsayıcıya kaydeder ve view ayarlarını yazar. Idempotent'tir.
-     * Uyumsuz bir nesnede sessizce atlanır; render() çalışmaya devam eder.
-     */
     mount(override = false) {
         if (this.mounted || !this.canMount()) {
             if (!this.mounted && this.debug) {
@@ -129,10 +117,6 @@ class ViewEngine {
         }
         return this;
     }
-    /**
-     * View adını mevcut bir dosyaya çözer: tam ad, sonra `.emv` → `.html` → `.js`.
-     * Çözülemezse adı olduğu gibi bırakır; hata kapsayıcıya bırakılır.
-     */
     resolveView(name) {
         const raw = String(name ?? '');
         const clean = (0, file_utils_1.splitPathAndQuery)(raw).path;
@@ -144,11 +128,9 @@ class ViewEngine {
             return clean;
         return resolved;
     }
-    /** `renderView` kısayolu: `renderFile()` ile aynı davranış. */
     renderFile(filePath, options = {}) {
         return this.renderView(filePath, options);
     }
-    /** Tek bir view dosyasını render eder (framework callback'i olmadan). */
     async renderView(filePath, options = {}) {
         const { path: cleanPath, query } = (0, file_utils_1.splitPathAndQuery)(filePath);
         const resolved = this.resolveView(cleanPath) || cleanPath;
@@ -172,17 +154,15 @@ class ViewEngine {
             return result.html;
         throw this.decorateError(new Error(result.error || 'Bilinmeyen şablon hatası'), resolved, result);
     }
-    /** Cache'i tek dosya veya tamamen temizler. */
     invalidate(filePath) {
         this.engine.clearCache(filePath ? path.resolve(filePath) : undefined);
     }
-    /** Watcher'ları kapatır, cache'i boşaltır ve kapsayıcıdaki kaydı düşürür. */
     destroy() {
         for (const watcher of this.dirWatchers) {
             try {
                 watcher.close();
             }
-            catch { /* yoksay */ }
+            catch { }
         }
         this.dirWatchers.length = 0;
         this.engine.clearCache();
@@ -193,10 +173,6 @@ class ViewEngine {
         }
         this.mounted = false;
     }
-    /**
-     * Express benzeri uygulamalarda her isteği kendi async kapsamına alır.
-     * Böylece render sırasında GET/POST değerleri otomatik okunur.
-     */
     installRequestScope() {
         const app = this.app;
         if (!app || typeof app.use !== 'function' || typeof app.render !== 'function')
@@ -206,10 +182,6 @@ class ViewEngine {
         app.use((request, _response, next) => (0, request_1.runWithRequest)(request, next));
         app[constants_1.VIEW_ENGINE_REQUEST_SCOPE] = true;
     }
-    /**
-     * Express benzeri kapsayıcılarda `render('index')` çağrısının
-     * index.emv → index.html → index.js sırasıyla çözülmesini sağlar.
-     */
     patchRenderResolution() {
         const app = this.app;
         if (!app || typeof app.render !== 'function' || app[constants_1.VIEW_ENGINE_RENDER_PATCH])
@@ -243,7 +215,6 @@ class ViewEngine {
             return true;
         return this.views.some(view => (0, file_utils_1.isInsideRoot)(target, view));
     }
-    /** Kapsayıcının iç anahtarlarını ayıklar; settings['view options'] değerlerini birleştirir. */
     extractLocals(options) {
         const locals = {};
         const viewOptions = options?.settings?.['view options'];
@@ -377,7 +348,6 @@ class ViewEngine {
                 this.dirWatchers.push(watcher);
             }
             catch {
-                // Dosya izleme desteklenmiyorsa sessizce devam et
             }
             let entries;
             try {
@@ -397,7 +367,6 @@ class ViewEngine {
         for (const dir of this.views)
             watchDir(dir, 0);
     }
-    /** Aynı uygulamaya ikinci kez kurulum yapılmasını engeller. */
     static mount(app, options = {}) {
         const mounted = app?.[constants_1.VIEW_ENGINE_MOUNT];
         if (mounted) {

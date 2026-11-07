@@ -35,15 +35,10 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDefaultErrorHandler = createDefaultErrorHandler;
 const path = __importStar(require("path"));
-/**
- * Motorun varsayılan hata sayfası üreticisi.
- * Mutlak proje yolunu stack trace içinde '.' ile maskeler.
- */
 function createDefaultErrorHandler(rootPath) {
     const root = rootPath ? path.resolve(rootPath) : process.cwd();
     return (err, type) => {
         const style = 'color:#fff;background:#d32f2f;padding:10px;border:2px solid #b71c1c;border-radius:5px;font-family:monospace;margin:10px 0;display:block;';
-        // Clean stack trace: Mask absolute paths
         let cleanStack = err.stack || '';
         cleanStack = cleanStack.split(root).join('.');
         return `<div style="${style}">

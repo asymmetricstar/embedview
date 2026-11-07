@@ -38,12 +38,7 @@ exports.escapeString = escapeString;
 exports.escapeForTemplateLiteral = escapeForTemplateLiteral;
 exports.compileTemplate = compileTemplate;
 const vm = __importStar(require("vm"));
-/**
- * Şablon içindeki import/require sözdizimini CommonJS require'a çevirir
- * ve `sync` anahtar kelimesini async fonksiyona dönüştürür.
- */
 function transpileImports(code) {
-    // Support 'sync' keyword for async functions
     code = code.replace(/\bsync\s+([\w$]+)\s*\(/g, 'async function $1(');
     code = code.replace(/\bsync\s*\(/g, 'async function (');
     code = code.replace(/import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g, 'const $1 = require("$2");');
@@ -64,10 +59,6 @@ function escapeString(str) {
 function escapeForTemplateLiteral(str) {
     return str.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
 }
-/**
- * HTML şablonunu asenkron bir render fonksiyonuna derler.
- * Derleme hatalarında dosya adı ve üretilen kod ile birlikte fırlatır.
- */
 function compileTemplate(html, filePath, options) {
     let code = '(async () => {\n';
     code += 'const __output = [];\n';
@@ -77,10 +68,6 @@ function compileTemplate(html, filePath, options) {
     const delimiter = options.delimiter;
     const regex = new RegExp(`(${delimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?\\?>)`, 'g');
     const parts = html.split(regex);
-    /**
-     * Metin parçasını yazarken `$getvar("...")` / `$postvar("...")`
-     * kalıplarını HTML-escape edilmiş çıktıya çevirir.
-     */
     const emitText = (text) => {
         const prepared = text.replace(/\$(getvar|postvar)\s*\(([^()]*)\)/gi, (_match, name, args) => '${escape(' + name.toLowerCase() + '(' + args + '))}');
         return `write(\`${escapeForTemplateLiteral(prepared)}\`);\n`;
@@ -128,7 +115,6 @@ function compileTemplate(html, filePath, options) {
             else if (sub.startsWith('{@import') || sub.startsWith('{@include')) {
                 const match = sub.match(/\{@(?:import|include)\s+['"]([^'"]+)['"]\}/);
                 if (match) {
-                    // Import/Include works like a line-based include, it inherits current context
                     code += `write( (await importFile('${match[1]}')).html );\n`;
                 }
                 else {

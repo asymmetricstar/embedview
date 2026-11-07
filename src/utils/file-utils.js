@@ -42,10 +42,6 @@ exports.normalizeExtensions = normalizeExtensions;
 exports.resolveExistingFile = resolveExistingFile;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-/**
- * `index.html?var1=test` biçimindeki girdiyi dosya yolu ve sorgu
- * parametrelerine ayırır. Sorgu yoksa boş nesne döner.
- */
 function splitPathAndQuery(input) {
     const raw = String(input ?? '');
     const index = raw.indexOf('?');
@@ -53,7 +49,6 @@ function splitPathAndQuery(input) {
         return { path: raw, query: Object.create(null) };
     return { path: raw.slice(0, index), query: parseQuery(raw.slice(index + 1)) };
 }
-/** `a=1&b=2` ya da `?a=1&b=2` metnini düz bir anahtar/değer nesnesine çevirir. */
 function parseQuery(raw) {
     const result = Object.create(null);
     const text = String(raw ?? '').replace(/^\?/, '');
@@ -65,10 +60,6 @@ function parseQuery(raw) {
     });
     return result;
 }
-/**
- * GET/POST verisini anahtar/değer nesnesine dönüştürür.
- * Nesneler doğrudan kopyalanır, metinler önce JSON sonra sorgu olarak denenir.
- */
 function toVars(value) {
     const result = Object.create(null);
     if (value === undefined || value === null)
@@ -84,7 +75,6 @@ function toVars(value) {
                     return Object.assign(result, parsed);
             }
             catch {
-                // JSON değil; sorgu biçimini dene
             }
         }
         return Object.assign(result, parseQuery(text));
@@ -94,16 +84,9 @@ function toVars(value) {
     }
     return result;
 }
-/**
- * Render bağlamındaki GET ve POST değişkenlerini toplar.
- *
- * GET:  locals.get, locals.query, locals.url sorgusu, locals.request/req.query
- * POST: locals.post, locals.body, locals.request/req.body
- */
 function collectRequestVars(locals) {
     const source = locals ?? {};
     const request = source.request ?? source.req ?? {};
-    // Açıkça verilen locals, aktif istekteki değerleri geçersiz kılar.
     const get = Object.create(null);
     Object.assign(get, toVars(request.query));
     if (typeof request.url === 'string')
@@ -118,7 +101,6 @@ function collectRequestVars(locals) {
     Object.assign(post, toVars(source.body));
     return { get, post };
 }
-/** Hedef yolun verilen kök dizinin içinde kalıp kalmadığını söyler. */
 function isInsideRoot(target, root) {
     const resolvedRoot = path.resolve(root);
     const resolvedTarget = path.resolve(target);
@@ -127,7 +109,6 @@ function isInsideRoot(target, root) {
         !relative.startsWith(`..${path.sep}`) &&
         !path.isAbsolute(relative));
 }
-/** Uzantı listesini noktalı, küçük harfli ve benzersiz hale getirir. */
 function normalizeExtensions(extensions) {
     if (!extensions)
         return [];
@@ -149,12 +130,6 @@ function isFile(filePath) {
         return false;
     }
 }
-/**
- * Bir şablon adını mevcut bir dosyaya çözer.
- *
- * Sıra: verilen yolun kendisi, sonra uzantılar (.emv → .html → .js).
- * Kök dizinler sırayla denenir; göreli adlar her köke göre çözülür.
- */
 function resolveExistingFile(input, roots, extensions) {
     const clean = String(input ?? '').trim();
     if (!clean)

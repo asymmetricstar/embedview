@@ -1,17 +1,4 @@
 "use strict";
-/**
- * embedview — tek public giriş noktası.
- *
- * Dizin düzeni:
- *   src/core/        Motor çekirdeği: embed-view, compiler, context
- *   src/builtins/    Yerleşik genişletme noktaları: filters, plugins
- *   src/utils/       Yardımcılar: constants, error-handler, file-utils, path-utils
- *   src/types/       Paylaşılan tip sözleşmesi (index.ts)
- *   src/view-engine/ Framework bağımsız view engine adaptörü
- *
- * Alt klasörler birbirini bu barrel üzerinden değil, doğrudan göreli yollarla
- * import eder; dışarıya açılan yüzey yalnızca burasıdır.
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ViewEngine = exports.defaultFilters = exports.EmbedView = void 0;
 var embed_view_1 = require("./core/embed-view");

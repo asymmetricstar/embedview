@@ -4,30 +4,15 @@ exports.runWithRequest = runWithRequest;
 exports.currentRequest = currentRequest;
 exports.ensureRequestBody = ensureRequestBody;
 const async_hooks_1 = require("async_hooks");
-/**
- * Aktif HTTP isteğini async çağrı zinciri boyunca taşır.
- *
- * `ViewEngine` Express benzeri uygulamalara bir middleware kurar ve
- * `EmbedView.handler()` her isteği bu kapsam içinde çalıştırır. Böylece
- * `renderFile()` çağrıldığında `$getvar` / `$postvar` için ek parametre
- * geçirmek gerekmez: değerler doğrudan istekten okunur.
- */
 const requestScope = new async_hooks_1.AsyncLocalStorage();
 const BODY_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const pendingBodies = new WeakMap();
-/** İsteği geçerli async kapsamın içinde çalıştırır. */
 function runWithRequest(request, fn) {
     return requestScope.run(request, fn);
 }
-/** Şu an işlenen istek varsa döndürür. */
 function currentRequest() {
     return requestScope.getStore();
 }
-/**
- * URL-encoded veya JSON gövdeyi istek üzerinde bir kez hazırlar.
- * Express `express.urlencoded()` / `express.json()` kullanıldıysa gövde zaten
- * doludur ve bu fonksiyon hiçbir şey yapmaz.
- */
 function ensureRequestBody(request) {
     if (!request || typeof request !== 'object')
         return Promise.resolve();

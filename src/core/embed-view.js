@@ -72,9 +72,6 @@ class EmbedView extends events_1.EventEmitter {
             allowedExtensions: options.allowedExtensions ?? constants_1.DEFAULT_TEMPLATE_EXTENSIONS
         };
     }
-    /* ------------------------------------------------------------------ */
-    /* Eklenti & filtre                                                    */
-    /* ------------------------------------------------------------------ */
     use(plugin) {
         this.plugins.push(plugin);
         if (plugin.helpers) {
@@ -84,18 +81,10 @@ class EmbedView extends events_1.EventEmitter {
     registerFilter(name, fn) {
         this.filters[name] = fn;
     }
-    /* ------------------------------------------------------------------ */
-    /* Global değerler (dosyalar arası paylaşım)                           */
-    /* ------------------------------------------------------------------ */
-    /**
-     * Süreç genelindeki global değeri yazar. Değer türü korunur; şablonlar
-     * içinden `setglobal(ad, değer)` çağrısı da aynı depoya yazar.
-     */
     setglobal(name, value) {
         globals_1.globalStore.set(name, value);
         return this;
     }
-    /** Global değeri olduğu gibi (object, array, number ...) döndürür. */
     getglobal(name) {
         return globals_1.globalStore.get(name);
     }
@@ -121,9 +110,6 @@ class EmbedView extends events_1.EventEmitter {
         }
         return filter(value, ...args);
     }
-    /* ------------------------------------------------------------------ */
-    /* Dosya izleme                                                        */
-    /* ------------------------------------------------------------------ */
     watch(filePath) {
         const target = path.resolve(filePath);
         if (this.watchers.has(target))
@@ -144,9 +130,6 @@ class EmbedView extends events_1.EventEmitter {
             this.watchers.delete(target);
         }
     }
-    /* ------------------------------------------------------------------ */
-    /* Layout & partial                                                    */
-    /* ------------------------------------------------------------------ */
     registerLayout(name, content) {
         this.layouts.set(name, content);
     }
@@ -157,7 +140,6 @@ class EmbedView extends events_1.EventEmitter {
                 return fs.readFileSync(target, 'utf8');
             }
             catch {
-                // Kayıtlı layout'a düş
             }
         }
         return this.layouts.get(name) ?? null;
@@ -170,13 +152,6 @@ class EmbedView extends events_1.EventEmitter {
         const result = await this.parseFileAsync(target, data);
         return result.html;
     }
-    /* ------------------------------------------------------------------ */
-    /* Güvenlik & yol çözümleme                                            */
-    /* ------------------------------------------------------------------ */
-    /**
-     * Kök dizin dışına çıkan yolları reddeder. `allowOutsideRoot: true`
-     * verilmediği sürece sembolik bağlantı kaçışları da engellenir.
-     */
     isPathAllowed(targetPath) {
         if (this.options.allowOutsideRoot)
             return true;
@@ -193,10 +168,6 @@ class EmbedView extends events_1.EventEmitter {
             return true;
         }
     }
-    /**
-     * Şablon adını güvenli biçimde gerçek bir dosyaya çözer.
-     * Sıra: tam yol, `.emv`, `.html`, `.js`.
-     */
     resolveTemplate(name, baseDir) {
         const clean = (0, file_utils_1.splitPathAndQuery)(name).path;
         const roots = baseDir ? [baseDir, this.options.rootPath] : [this.options.rootPath];
@@ -226,11 +197,6 @@ class EmbedView extends events_1.EventEmitter {
             onError: (error) => (0, plugins_1.runPluginsOnError)(this.plugins, error)
         }, filePath, locals, blocks, importStack);
     }
-    /**
-     * contextObj.__layout varsa layout dosyasını okur, {@render} yerlerine
-     * blok içeriklerini koyar ve layout'u yeniden parse eder.
-     * Layout yoksa null döner.
-     */
     async renderLayout(contextObj, locals, importStack = []) {
         if (!contextObj.__layout)
             return null;
@@ -239,15 +205,11 @@ class EmbedView extends events_1.EventEmitter {
             throw new Error(`Layout not found or not allowed: ${contextObj.__layout}`);
         }
         let layoutHtml = await fs.promises.readFile(layoutPath, 'utf8');
-        // Replace {@render name} with block content
         layoutHtml = layoutHtml.replace(/\{@render\s+(\w+)\}/g, (_, name) => {
             return contextObj.blocks[name] || '';
         });
         return this.parseStringAsync(layoutHtml, layoutPath, locals, contextObj.blocks, importStack);
     }
-    /* ------------------------------------------------------------------ */
-    /* Parse / render pipeline                                             */
-    /* ------------------------------------------------------------------ */
     parseString(htmlString, basePath, locals) {
         throw new Error('parseString is deprecated. Use parseStringAsync.');
     }
@@ -271,7 +233,6 @@ class EmbedView extends events_1.EventEmitter {
                 console.log('[DEBUG] Child resultHtml length:', resultHtml.length);
                 console.log('[DEBUG] Blocks defined:', Object.keys(contextObj.blocks));
             }
-            // Handle Layout Inheritance
             const layoutResult = await this.renderLayout(contextObj, locals, importStack);
             if (layoutResult)
                 return layoutResult;
@@ -306,7 +267,6 @@ class EmbedView extends events_1.EventEmitter {
             if (this.options.cache && this.cache.has(target)) {
                 const entry = this.cache.get(target);
                 if (entry.mtime === stats.mtimeMs) {
-                    // We still need to run the compiled function with new locals
                     const contextObj = this.createContext(target, renderLocals, blocks, importStack);
                     const context = vm.createContext(contextObj);
                     let resultHtml = await entry.fn(context);
@@ -341,10 +301,6 @@ class EmbedView extends events_1.EventEmitter {
             };
         }
     }
-    /**
-     * Tek bir şablon dosyasını adaptör veya framework olmadan render eder.
-     * Başarıda HTML döner, dosya bulunamazsa/izin yoksa hata fırlatır.
-     */
     async renderFile(filePath, locals) {
         const result = await this.parseFileAsync(filePath, locals);
         if (result.success)
@@ -357,7 +313,6 @@ class EmbedView extends events_1.EventEmitter {
             error.source = result.source;
         throw error;
     }
-    /** Motor örneği kurmadan tek dosya render eder. */
     static async renderFile(filePath, locals, options = {}) {
         const engine = new EmbedView(options);
         try {
@@ -367,16 +322,6 @@ class EmbedView extends events_1.EventEmitter {
             engine.destroy();
         }
     }
-    /**
-     * `node:http` için sıfır-kurulum istek işleyicisi üretir.
-     *
-     * ```js
-     * http.createServer(engine.handler('index.emv')).listen(3000);
-     * ```
-     *
-     * İstek kendi async kapsamında render edilir; `$getvar` / `$postvar`
-     * değerleri ek parametre olmadan doğrudan istekten okunur.
-     */
     handler(filePath) {
         return async (request, response) => {
             try {
@@ -390,9 +335,6 @@ class EmbedView extends events_1.EventEmitter {
             }
         };
     }
-    /* ------------------------------------------------------------------ */
-    /* Cache                                                               */
-    /* ------------------------------------------------------------------ */
     async precompile(filePath, outputPath) {
         try {
             const result = await this.parseFileAsync(filePath);
@@ -414,9 +356,6 @@ class EmbedView extends events_1.EventEmitter {
     getCacheStats() {
         return { size: this.cache.size, entries: Array.from(this.cache.keys()) };
     }
-    /* ------------------------------------------------------------------ */
-    /* Yaşam döngüsü                                                       */
-    /* ------------------------------------------------------------------ */
     attachExit() {
         const self = this;
         process.on('SIGINT', () => {
